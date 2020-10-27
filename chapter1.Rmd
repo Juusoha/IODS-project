@@ -1,13 +1,19 @@
+---
+title: "About the course"
+---
 
-# About the project
+## Where did you find out about this course?
 
-*Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
+I heard about this course through email notification about it, sent by out  faculty's teaching assistant at the University of Eastern Finland.
 
-```{r}
-# This is a so-called "R chunk" where you can write R code.
+## What are you expecting to learn during the course?
 
-date()
+I am looking forward to learn more about R-programming and get more hands-on experience with statistical methods in data science.
 
-```
-The text continues here.
+## How am I feeling right now?
 
+It is kinda busy with all the fuzz going on, but I am really looking forward to this course and to see what it has to offer.
+
+## Here is the GitHub link
+
+https://github.com/Juusoha/IODS-project
