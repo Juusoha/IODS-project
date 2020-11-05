@@ -1,13 +1,175 @@
-# Insert chapter 2 title here
+---
+title: "Chapter 2 - Data Wrangling and Analysis"
+--- 
+# Chapter 2 - Data Wrangling and Analysis
 
-*Describe the work you have done this week and summarize your learning.*
+*This week went mostly working with R, as I suppose was the case for many others too. Week included also some learning exercises on DataCamp (with the R-exercises) and other studying (related to this and other cources). Lots of new interesting things to learn!*
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+## Overview of the data
+
+Lets begin our journey to Data Analysis with R.
+
+For the starters we need to set up some things and get the data to be analyze in this little project.
+
+In this first section we import some useful libraries for data analyzing, load a data file, and take a deeper look into it.
+
+```{r message=FALSE, warning=FALSE}
+date()
+
+# Import libraries.
+library(ggplot2)
+library(GGally)
+library(dplyr)
+
+# Load data.
+learning14 <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/learning2014.txt", sep = ",", header = TRUE)
+
+# Structure of data.
+str(learning14)
+
+# Dimensions of the data.
+dim(learning14)
+```
+Data contains information about students who participated in the course on 2014. Variables present attributes and are based on questionnaires, while the observations present the answers given by participants. Original questionnaires were done using [Likert scale](https://en.wikipedia.org/wiki/Likert_scale "Likert scale").
+
+Data is separated into following segments:
+
+* Age (age)
+* Gender (gender)
+* Attitude scores (attitude)
+* Exam points (points)
+* Deep Learning related scores (deep)
+* Strategic Learning related scores (stra)
+* Surface-level Learning related scores (surf)
+
+### About dimensions
+
+* Data has 166 observations (rows) and 7 different variables (columns).
+
+### About the structure of the data
+
+* Datatypes: numeric, integer, character
+
+* The data consist mostly of numeric data except ((age, points), int) (gender, chr)
+
+## Graphical presentation of the data
+
+Next we visualize the data in order to get a better idea how the data behaves.
+
+Coloring of the data is meant to visualize the gender-distribution among the variables (*blue* being males and *red* females).
+
+```{r fig.width=10, message=FALSE, warning=FALSE}
+# Plot the data.
+image <- ggpairs(learning14, mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+
+# Show data.
+image
+```
+From the image we can better see summaries of variables and thus analyze the data.
+
+From the data presented we can directly see some interesting statistics about the students who participated in the course:
+
+* Most participant were females
+* The age distribution is quite similar for both genders (most of participants being relatively "young") and males participants being overall a bit older than female participants.
+* Males attitude towards statistics was bit higher than females
+* Distribution of points seems to be quite similar for both genders
+* Both genders were almost equally certain about questionnaires that fall in to the deep learning-category
+  + Deep learning-category represents questionnaires about how thorough person is during learning process and how much they reflect what they learn to what they already know
+* Females felt somewhat more certain about questionnaires that fall in to the strategic learning-category
+  + Strategic learning-category represents questionnaires about organizing studying and how effective learner the person is
+* Females were quite neutral on the questionnaires on surface learning-category
+  + Surface learning-category represents questionnaires  which are more about attitudes towards learning and how interested person is in general about trying to learn more than what is required
+
+Also it is important to notice the *correlations* which are presented in the data. The higher the absolute value is, the higher correlation between the variables. From there we can see that:
+
+* Attitude and points have a *positive correlation* value of 0.473, which is highest in the dataset and represents a strong correlation between attitude and points -> The better attitude towards statistics, the better points from the course
+* Strategic- and surface-category questionnaires seem to also have a correlation worth mentioning with absolute value of ~0.14 with points.
+  + Surface-category has *negative correlation*, indicating that person, who has more tendency to try to do as minimal work as possible or who is not so interested about the topics is more likely to get lower points
+  + Strategic-category has positive correlation, indicating that person, who is more organized and has a good strategy on studying is more likely to get better points.
+
+## Regression Model
+
+Next we create a basic linear regression model which goal is to estimate the relationships between points and the following explanatory variables:
+
+* Attitude
+* strategic learning
+* Surface learning
+
+Explanatory variables were chosen highly based on the correlations presented and explained earlier on the graphical overview of the data.
+
+The structure of the linear model is in form equation: $y = \alpha+\beta x + \epsilon$ and it is corresponding to the following formula, which we use to fit out model with given parameters in the next code section.
 
 ```{r}
-date()
+# Create linear model.
+lin_model <- lm(points ~ attitude + stra + surf, data = learning14)
+
+# Summary of our linear model.
+summary(lin_model)
+```
+Output from the fitted model:
+
+* Call: The formula for the model that is being fit
+* Residuals: Estimates of experimental error, which are obtained by subtracting the observed responses from the predicted responses (vertical distance between a datapoint and the regression line, positive if above the line and negative if below)
+* Coefficients: Estimates of the parameters of the model
+  + Estimate to *Intercept* is the estimate of alpha-parameter and the estimate for *attitude, stra and surf* are the beta-parameters. Here we have estimated the effect of these parameters to points (points corresponds to y in the original equation for the linear model)
+* Std. Error: Standard errors of alpha- and beta-values
+* T and P value: Corresponding to statistical test (T-test and P-test) of the null-hypothesis, that the actual value of the beta-parameter would be zero
+  + If the P-value is high, it is likely that the beta-parameter and the y-value does not have a statistical significant relationship. If the case would be so, the parameter is not likely to be the best parameter candidate for the linear model and changing it / dropping it off should be considered
+
+From the output of the summary we can see following relationships between beta-values and y-value:
+
+* Attitude has higher estimate than the stra and surf, which mean, that it is weighted higher than other parameters when it comes to the effect towards points. Stra has smaller impact and the surf has negative impact towards points
+* Standard errors are similar for stra and surf. Higher for attitude
+* P-values tell us that all the beta-values seem to have statistical correlation with the y-value (except slighty less significant for the surf-parameter)
+  + We can consider all of them quite good parameters for our model
+
+An other thing we are interested in the summary of our fitted model, is the Multiple R-squared.
+The Multiple R-squared is coefficient of multiple determination for multiple regression. It is used for measuring how well the model fitted the data. The higher the value of Multiple R-Squared is, the better the model fit the data.
+
+* As we can see, out model did not get really high value, but it does not necessarily mean that our model is not good
+  + Studies that try to explain human-behavior have generally R-Squared values, which are less than 50%
+* If the explanatory variables have statistical significance, we can still draw important conclusions from our model
+
+## Residual vs Fitted values, Normal QQ-plot and Residuals vs Leverage
+
+Next we are going to produce diagnostic plots of Residual vs Fitted values, Normal QQ-plot and Residuals vs Leverage.
+
+R offers really simple and easy way to produce diagnostic plots using plot()-function.
+In plot()-function we can use the argument *which* to choose the plots we want to produce.
+```{r fig.width=10, message=FALSE, warning=FALSE}
+# Draw diagnostic plots using the plot() function. Choose the plots 1, 2 and 5,
+# corresponding to Residual vs Fitted values, Normal QQ-plot and Residuals vs Leverage.
+
+# Draw all plots to same image.
+par(mfrow = c(2,2))
+
+# Plot the data and show it.
+plot(lin_model, which = c(1,2,5))
 ```
 
-Here we go again...
+
+Now we can draw assumptions from our model and validate it based on the diagnostic plots.
+
+Analyzing residuals of the model can be used to check validity and model assumptions.
+
+Here the assumptions are:
+* Errors are normally distributed
+* Errors are not correlated
+* Errors have constant variance
+* Size of the given error is not dependent on the explanatory variables
+
+QQ-plot of the residuals is used to measure the normality assumption.
+* Assumption that the errors of the model are normally distributed
+* The better the points fit the line, the more reasonable the model is
+* If a lot of deviance occurs the normality assumption is questionable
+
+Based on Residuals vs Fitted, we can see, that:
+* The residuals are spread around the zero-line, which indicates that the assumption that the relationship is linear, is reasonable
+* The residuals for a horizontal band around the zero line, indicating that errors have constant variance
+* The random pattern of residuals is quite uniform, suggesting that there is no ( or at least not many) outliers
+
+Based on the Normal QQ-plot we can see that:
+* The residuals fit nicely to the line, indicating that the models normality assumption is reasonable
+
+Based on the Residuals vs Leverage we can see that:
+* We can see that the line fits pretty well to the residuals, indicating that there are not outliers, which would cause fitting problems for the model
